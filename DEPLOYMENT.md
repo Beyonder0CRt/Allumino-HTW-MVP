@@ -96,8 +96,8 @@ Add these in Vercel Dashboard → Settings → Environment Variables:
 
 ```
 NODE_ENV=production
-DATABASE_URL_POSTGRES=postgresql://user:pass@host:5432/dbname
-MONGODB_URI=mongodb+srv://user:pass@cluster.mongodb.net/dbname
+DATABASE_URL_POSTGRES=postgresql://username:password@hostname:5432/database_name
+MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/database_name
 AUTH0_DOMAIN=your-tenant.auth0.com
 AUTH0_CLIENT_ID=your_auth0_client_id
 AUTH0_CLIENT_SECRET=your_auth0_client_secret
