@@ -1,0 +1,95 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL_POSTGRES")
+}
+
+model User {
+  id          String   @id @default(uuid())
+  auth0Id     String   @unique @map("auth0_id")
+  email       String   @unique
+  displayName String?  @map("display_name")
+  avatarUrl   String?  @map("avatar_url")
+  roles       String[] @default(["user"])
+  metadata    Json?    @db.JsonB
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  pathways     Pathway[]
+  assessments  Assessment[]
+  opportunities Opportunity[]
+
+  @@map("users")
+}
+
+model Pathway {
+  id          String   @id @default(uuid())
+  userId      String   @map("user_id")
+  title       String
+  description String?  @db.Text
+  metadata    Json?    @db.JsonB
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  assessments Assessment[]
+
+  @@index([userId])
+  @@map("pathways")
+}
+
+model Assessment {
+  id          String    @id @default(uuid())
+  userId      String    @map("user_id")
+  pathwayId   String?   @map("pathway_id")
+  title       String
+  type        String
+  score       Decimal?  @db.Decimal(5, 2)
+  completedAt DateTime? @map("completed_at")
+  metadata    Json?     @db.JsonB
+  createdAt   DateTime  @default(now()) @map("created_at")
+
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  pathway Pathway? @relation(fields: [pathwayId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([pathwayId])
+  @@map("assessments")
+}
+
+model Opportunity {
+  id          String   @id @default(uuid())
+  title       String
+  description String?  @db.Text
+  location    String?
+  tags        String[] @default([])
+  createdById String?  @map("created_by_id")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  createdBy User? @relation(fields: [createdById], references: [id], onDelete: SetNull)
+
+  @@index([createdById])
+  @@map("opportunities")
+}
+
+model Session {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  token     String   @unique @db.Text
+  expiresAt DateTime @map("expires_at")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([userId])
+  @@index([expiresAt])
+  @@map("sessions")
+}

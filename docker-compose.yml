@@ -1,0 +1,67 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: allumino-postgres
+    environment:
+      POSTGRES_USER: allumino
+      POSTGRES_PASSWORD: allumino_dev_pass
+      POSTGRES_DB: allumino
+    ports:
+      - '5432:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U allumino']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  mongodb:
+    image: mongo:7
+    container_name: allumino-mongodb
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: allumino
+      MONGO_INITDB_ROOT_PASSWORD: allumino_dev_pass
+    ports:
+      - '27017:27017'
+    volumes:
+      - mongo_data:/data/db
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build: .
+    container_name: allumino-backend
+    depends_on:
+      postgres:
+        condition: service_healthy
+      mongodb:
+        condition: service_healthy
+    ports:
+      - '3001:3001'
+    environment:
+      NODE_ENV: development
+      PORT: 3001
+      DATABASE_URL_POSTGRES: postgresql://allumino:allumino_dev_pass@postgres:5432/allumino
+      MONGODB_URI: mongodb://allumino:allumino_dev_pass@mongodb:27017/allumino?authSource=admin
+      AUTH0_DOMAIN: ${AUTH0_DOMAIN}
+      AUTH0_CLIENT_ID: ${AUTH0_CLIENT_ID}
+      AUTH0_CLIENT_SECRET: ${AUTH0_CLIENT_SECRET}
+      AUTH0_AUDIENCE: ${AUTH0_AUDIENCE}
+      AUTH0_CALLBACK_URL: http://localhost:3001/api/auth/callback
+      SESSION_SECRET: ${SESSION_SECRET:-dev_secret_change_in_production}
+      FRONTEND_URL: http://localhost:3000
+      CORS_ORIGINS: http://localhost:3000
+    volumes:
+      - ./src:/app/src
+      - ./logs:/app/logs
+    command: npm run dev
+
+volumes:
+  postgres_data:
+  mongo_data:

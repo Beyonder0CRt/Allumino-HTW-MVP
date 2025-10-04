@@ -1,0 +1,82 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_USER: allumino
+          POSTGRES_PASSWORD: test_password
+          POSTGRES_DB: allumino_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+      mongodb:
+        image: mongo:7
+        env:
+          MONGO_INITDB_ROOT_USERNAME: allumino
+          MONGO_INITDB_ROOT_PASSWORD: test_password
+        options: >-
+          --health-cmd "echo 'db.runCommand(\"ping\").ok' | mongosh localhost:27017/test --quiet"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 27017:27017
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate Prisma Client
+        run: npx prisma generate
+
+      - name: Run database migrations
+        run: npx prisma migrate deploy
+        env:
+          DATABASE_URL_POSTGRES: postgresql://allumino:test_password@localhost:5432/allumino_test
+
+      - name: Run linter
+        run: npm run lint
+
+      - name: Run tests
+        run: npm test
+        env:
+          NODE_ENV: test
+          DATABASE_URL_POSTGRES: postgresql://allumino:test_password@localhost:5432/allumino_test
+          MONGODB_URI: mongodb://allumino:test_password@localhost:27017/allumino_test?authSource=admin
+          SESSION_SECRET: test_secret
+          AUTH0_DOMAIN: test.auth0.com
+          AUTH0_CLIENT_ID: test_client_id
+          AUTH0_CLIENT_SECRET: test_client_secret
+          AUTH0_AUDIENCE: https://api.test.com
+          AUTH0_CALLBACK_URL: http://localhost:3001/api/auth/callback
+
+      - name: Upload coverage
+        uses: codecov/codecov-action@v4
+        if: always()
+        with:
+          files: ./coverage/lcov.info
+          flags: unittests

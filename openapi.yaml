@@ -1,0 +1,454 @@
+openapi: 3.0.3
+info:
+  title: Allumino Backend API
+  description: Backend API for the Allumino platform with Auth0, PostgreSQL, and MongoDB
+  version: 1.0.0
+  contact:
+    name: Allumino Team
+
+servers:
+  - url: http://localhost:3001/api
+    description: Local development
+  - url: https://your-app.up.railway.app/api
+    description: Railway production
+  - url: https://your-app.vercel.app/api
+    description: Vercel production
+
+tags:
+  - name: Health
+    description: Health check endpoints
+  - name: Authentication
+    description: Auth0 authentication flow
+  - name: User
+    description: User profile management
+  - name: Pathways
+    description: Learning pathways
+  - name: Assessments
+    description: Assessment management
+  - name: Opportunities
+    description: Opportunity listings
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        auth0Id:
+          type: string
+        email:
+          type: string
+          format: email
+        displayName:
+          type: string
+        avatarUrl:
+          type: string
+        roles:
+          type: array
+          items:
+            type: string
+        createdAt:
+          type: string
+          format: date-time
+
+    Pathway:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        userId:
+          type: string
+          format: uuid
+        title:
+          type: string
+        description:
+          type: string
+        metadata:
+          type: object
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    Assessment:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        userId:
+          type: string
+          format: uuid
+        pathwayId:
+          type: string
+          format: uuid
+        title:
+          type: string
+        type:
+          type: string
+        score:
+          type: number
+        completedAt:
+          type: string
+          format: date-time
+        createdAt:
+          type: string
+          format: date-time
+
+    Opportunity:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        description:
+          type: string
+        location:
+          type: string
+        tags:
+          type: array
+          items:
+            type: string
+        createdAt:
+          type: string
+          format: date-time
+
+paths:
+  /health:
+    get:
+      tags:
+        - Health
+      summary: Health check
+      description: Returns service status and database connectivity
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  timestamp:
+                    type: string
+                  uptime:
+                    type: number
+                  databases:
+                    type: object
+        '503':
+          description: Service is unhealthy
+
+  /auth/login:
+    get:
+      tags:
+        - Authentication
+      summary: Initiate Auth0 login
+      description: Redirects to Auth0 login page
+      responses:
+        '302':
+          description: Redirect to Auth0
+
+  /auth/callback:
+    get:
+      tags:
+        - Authentication
+      summary: Auth0 callback
+      description: Handles Auth0 callback and issues JWT token
+      parameters:
+        - name: code
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Authentication successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                  user:
+                    $ref: '#/components/schemas/User'
+
+  /auth/logout:
+    post:
+      tags:
+        - Authentication
+      summary: Logout
+      description: Returns Auth0 logout URL
+      responses:
+        '200':
+          description: Logout URL returned
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  logoutUrl:
+                    type: string
+
+  /me:
+    get:
+      tags:
+        - User
+      summary: Get current user profile
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: User profile
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '401':
+          description: Unauthorized
+
+    put:
+      tags:
+        - User
+      summary: Update user profile
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                preferences:
+                  type: object
+                customFields:
+                  type: object
+      responses:
+        '200':
+          description: Profile updated
+        '401':
+          description: Unauthorized
+
+  /pathways:
+    get:
+      tags:
+        - Pathways
+      summary: Get user pathways
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: List of pathways
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Pathway'
+                  pagination:
+                    type: object
+
+    post:
+      tags:
+        - Pathways
+      summary: Create pathway
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - title
+              properties:
+                title:
+                  type: string
+                description:
+                  type: string
+                metadata:
+                  type: object
+      responses:
+        '201':
+          description: Pathway created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Pathway'
+
+  /pathways/{id}:
+    get:
+      tags:
+        - Pathways
+      summary: Get pathway by ID
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Pathway details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Pathway'
+        '404':
+          description: Not found
+
+  /public/pathways:
+    get:
+      tags:
+        - Pathways
+      summary: List public pathways
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+        - name: limit
+          in: query
+          schema:
+            type: integer
+        - name: search
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Public pathways
+
+  /assessments:
+    get:
+      tags:
+        - Assessments
+      summary: Get user assessments
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: List of assessments
+
+    post:
+      tags:
+        - Assessments
+      summary: Create assessment
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - title
+                - type
+              properties:
+                title:
+                  type: string
+                type:
+                  type: string
+                pathwayId:
+                  type: string
+                  format: uuid
+                rawData:
+                  type: object
+      responses:
+        '201':
+          description: Assessment created
+
+  /opportunities:
+    get:
+      tags:
+        - Opportunities
+      summary: List opportunities
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: tags
+          in: query
+          schema:
+            type: string
+        - name: location
+          in: query
+          schema:
+            type: string
+        - name: search
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of opportunities
+
+    post:
+      tags:
+        - Opportunities
+      summary: Create opportunity (Admin only)
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - title
+              properties:
+                title:
+                  type: string
+                description:
+                  type: string
+                location:
+                  type: string
+                tags:
+                  type: array
+                  items:
+                    type: string
+      responses:
+        '201':
+          description: Opportunity created
+        '403':
+          description: Forbidden (requires admin role)

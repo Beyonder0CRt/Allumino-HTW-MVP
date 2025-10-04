@@ -1,0 +1,25 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "api/index.js",
+      "use": "@vercel/node"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "api/index.js"
+    }
+  ],
+  "env": {
+    "NODE_ENV": "production",
+    "DATABASE_URL_POSTGRES": "@database_url_postgres",
+    "MONGODB_URI": "@mongodb_uri",
+    "AUTH0_DOMAIN": "@auth0_domain",
+    "AUTH0_CLIENT_ID": "@auth0_client_id",
+    "AUTH0_CLIENT_SECRET": "@auth0_client_secret",
+    "AUTH0_AUDIENCE": "@auth0_audience",
+    "SESSION_SECRET": "@session_secret"
+  }
+}
