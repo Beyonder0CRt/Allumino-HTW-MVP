@@ -12,7 +12,11 @@
       "Bash(git init:*)",
       "Bash(git remote add:*)",
       "Bash(git checkout:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(cat:*)",
+      "Bash(curl:*)",
+      "Bash(pip3 install:*)",
+      "Bash(brew install:*)"
     ],
     "deny": [],
     "ask": []

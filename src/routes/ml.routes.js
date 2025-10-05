@@ -1,7 +1,10 @@
 const express = require('express');
 const router = express.Router();
-const { authenticate } = require('../middlewares/auth.middleware');
+const { verifyAccess } = require('../middlewares/auth.middleware');
 const mlService = require('../services/mlService');
+
+// Use verifyAccess as authenticate
+const authenticate = verifyAccess;
 
 /**
  * @route   POST /api/ml/predict

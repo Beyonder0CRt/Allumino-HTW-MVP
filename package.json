@@ -18,12 +18,18 @@
     "lint:fix": "eslint src/**/*.js --fix",
     "format": "prettier --write \"src/**/*.js\""
   },
-  "keywords": ["allumino", "education", "pathways", "backend"],
+  "keywords": [
+    "allumino",
+    "education",
+    "pathways",
+    "backend"
+  ],
   "author": "",
   "license": "ISC",
   "dependencies": {
     "@prisma/client": "^6.16.3",
     "auth0": "^5.0.0",
+    "axios": "^1.12.2",
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",
     "express": "^5.1.0",
