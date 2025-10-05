@@ -8,26 +8,33 @@ import { useState } from "react";
 
 // --- Local images (exact filenames from your Desktop folder) ---
 // If you rename any file, update the strings here to match.
-const HERO_IMG = new URL(
-  "./WhatsApp Image 2025-10-04 at 15.46.18 (1) 7.38.33 PM.jpeg",
-  import.meta.url
-).href; // hero (gaming event)
-const LAPTOP_SCREEN_IMG = new URL(
-  "./WhatsApp Image 2025-10-04 at 15.46.18 (2) 7.38.33 PM.jpeg",
-  import.meta.url
-).href; // dashboard/screen
-const STUDENT_IMG = new URL(
-  "./WhatsApp Image 2025-10-04 at 15.46.18 (3) 7.38.33 PM.jpeg",
-  import.meta.url
-).href; // student photo
-const EDUCATION_IMG = new URL(
-  "./WhatsApp Image 2025-10-04 at 15.46.18 (4) 7.38.33 PM.jpeg",
-  import.meta.url
-).href; // education/laptop block
-const PHONE_SCENE_IMG = new URL(
-  "./WhatsApp Image 2025-10-04 at 15.46.18 7.38.33 PM.jpeg",
-  import.meta.url
-).href; // phone-on-chair (use anywhere you like)
+// const HERO_IMG = new URL(
+//   "/hero",
+//   import.meta.url
+// ).href; // hero (gaming event)
+// const LAPTOP_SCREEN_IMG = new URL(
+//   "/laptop",
+//   import.meta.url
+// ).href; // dashboard/screen
+// const STUDENT_IMG = new URL(
+//   "/screen",
+//   import.meta.url
+// ).href; // student photo
+// const EDUCATION_IMG = new URL(
+//   "/student",
+//   import.meta.url
+// ).href; // education/laptop block
+// const PHONE_SCENE_IMG = new URL(
+//   "/education",
+//   import.meta.url
+// ).href; // phone-on-chair (use anywhere you like)
+
+// Point to the actual files in `public/` (Vite serves those at root)
+const HERO_IMG = "/hero.jpeg";
+const LAPTOP_SCREEN_IMG = "/screen.jpeg"; // dashboard / screen image
+const STUDENT_IMG = "/student.jpeg"; // student photo
+const EDUCATION_IMG = "/education.jpeg"; // education block
+const PHONE_SCENE_IMG = "/laptop.jpeg"; // phone/laptop scene
 
 // API Configuration
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
