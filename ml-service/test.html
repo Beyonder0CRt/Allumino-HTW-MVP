@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>ML Service Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        .form-group {
+            margin: 15px 0;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input, select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        #result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 4px;
+            display: none;
+        }
+        .success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        .error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+    </style>
+</head>
+<body>
+    <h1>STEM Talent Prediction</h1>
+
+    <form id="predictionForm">
+        <div class="form-group">
+            <label>Math Score (0-100):</label>
+            <input type="number" id="mathScore" min="0" max="100" value="85" required>
+        </div>
+
+        <div class="form-group">
+            <label>Science Score (0-100):</label>
+            <input type="number" id="scienceScore" min="0" max="100" value="90" required>
+        </div>
+
+        <div class="form-group">
+            <label>Project Score (0-100):</label>
+            <input type="number" id="projectScore" min="0" max="100" value="80" required>
+        </div>
+
+        <div class="form-group">
+            <label>Gender:</label>
+            <select id="gender" required>
+                <option value="Female">Female</option>
+                <option value="Male">Male</option>
+                <option value="Non-Binary">Non-Binary</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>Socioeconomic Index (0-1):</label>
+            <input type="number" id="socioeconomicIndex" min="0" max="1" step="0.1" value="0.7" required>
+        </div>
+
+        <button type="submit">Predict STEM Potential</button>
+    </form>
+
+    <div id="result"></div>
+
+    <script>
+        document.getElementById('predictionForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const data = {
+                math_score: parseFloat(document.getElementById('mathScore').value),
+                science_score: parseFloat(document.getElementById('scienceScore').value),
+                project_score: parseFloat(document.getElementById('projectScore').value),
+                gender: document.getElementById('gender').value,
+                socioeconomic_index: parseFloat(document.getElementById('socioeconomicIndex').value)
+            };
+
+            const resultDiv = document.getElementById('result');
+
+            try {
+                const response = await fetch('http://localhost:5001/predict', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    resultDiv.className = 'success';
+                    resultDiv.style.display = 'block';
+                    resultDiv.innerHTML = `
+                        <h3>Prediction Results</h3>
+                        <p><strong>STEM Potential:</strong> ${result.stem_potential === 1 ? 'High' : 'Low'}</p>
+                        <p><strong>Confidence:</strong> ${(result.confidence * 100).toFixed(2)}%</p>
+                        <p><strong>Recommendation:</strong> ${result.recommendation.message}</p>
+                        <p><strong>Next Steps:</strong></p>
+                        <ul>
+                            ${result.recommendation.next_steps.map(step => `<li>${step}</li>`).join('')}
+                        </ul>
+                    `;
+                } else {
+                    throw new Error(result.error || 'Prediction failed');
+                }
+            } catch (error) {
+                resultDiv.className = 'error';
+                resultDiv.style.display = 'block';
+                resultDiv.innerHTML = `<strong>Error:</strong> ${error.message}`;
+            }
+        });
+    </script>
+</body>
+</html>
