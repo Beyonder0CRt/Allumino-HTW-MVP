@@ -1,3 +1,8 @@
+An AI-powered platform built at Hack the Valley X, designed to uncover hidden STEM talent in students, personalize their learning and career pathways, and connect them to real-world opportunities by adapting to their behavior and regional context. 
+
+
+
+
 # Allumino Backend API
 
 Production-ready backend for the Allumino platform built with Node.js, Express, PostgreSQL, MongoDB, and Auth0.
