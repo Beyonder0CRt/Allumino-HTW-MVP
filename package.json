@@ -56,3 +56,8 @@
     "typescript": "^5.9.3"
   }
 }
+
+{
+  "coverageDirectory": "coverage",
+  "coverageReporters": ["lcov", "text"]
+}
